@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Floración y cuajado</title>
+<meta name="theme-color" content="#a3173f">
+<meta name="description" content="Registro por campaña de la floración y el cuajado de cada variedad de cerezo.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-512.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Cerezos">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<style>
+/* Una columna; una tarjeta por variedad con dos desplegables (floración, cuajado) que se tiñen según el valor; comparación en una tabla por años. */
+:root {
+  --bg: #f5f3f4; --surface: #ffffff; --ink: #261c20; --muted: #6c5e64; --line: #e2dade;
+  --accent: #a3173f; --accent-ink: #ffffff; --danger: #a8281c; --ok: #246a42;
+  --f1: #f7d9e1; --f1i: #261c20; --f2: #e9a3b8; --f2i: #261c20; --f3: #b73a5e; --f3i: #ffffff;
+  --s1: #dcebe0; --s1i: #261c20; --s2: #b3d7bf; --s2i: #261c20; --s3: #7fbb94; --s3i: #1b2a20;
+  --s4: #468f61; --s4i: #ffffff; --s5: #246a42; --s5i: #ffffff;
+  --font-display: ui-rounded, "Avenir Next", "Trebuchet MS", system-ui, sans-serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #151113; --surface: #1f191c; --ink: #f1e8eb; --muted: #ab9ba2; --line: #352b2f;
+    --accent: #e4607f; --accent-ink: #1a0f13; --danger: #f08a7e; --ok: #8fd1a6;
+    --f1: #4a2833; --f1i: #f1e8eb; --f2: #7d3a52; --f2i: #f1e8eb; --f3: #d9708f; --f3i: #1a0f13;
+    --s1: #26382d; --s1i: #f1e8eb; --s2: #31553f; --s2i: #f1e8eb; --s3: #3f7a55; --s3i: #f1e8eb;
+    --s4: #62a77a; --s4i: #10190f; --s5: #8fd1a6; --s5i: #10190f; color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.4;
+  padding-top: max(18px, env(safe-area-inset-top, 0px));
+  padding-bottom: max(40px, env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; }
+.top { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+h1 { font-size: 24px; line-height: 1.1; font-weight: 800; }
+.yearpick { display: flex; flex-direction: column; gap: 2px; align-items: flex-end; }
+.yearpick label { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+select, input[type=text], textarea { font: inherit; font-size: 16px; color: inherit; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; min-height: 48px; width: 100%; }
+option { background: var(--surface); color: var(--ink); }
+.yearpick select { width: auto; font-family: var(--font-display); font-weight: 800; font-size: 26px; line-height: 1; color: var(--accent); padding: 4px 26px 4px 10px; min-height: 0; }
+textarea { resize: vertical; min-height: 0; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button { font: inherit; color: inherit; touch-action: manipulation; }
+.tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; background: var(--surface); padding: 4px; border-radius: 12px; border: 1px solid var(--line); }
+.tabs button { border: 0; background: none; border-radius: 9px; min-height: 46px; font-weight: 700; color: var(--muted); cursor: pointer; }
+.tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
+.banner { background: var(--s1); color: var(--s1i); border-radius: 10px; padding: 10px 12px; font-size: 14px; }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+.bar { display: flex; justify-content: flex-end; }
+.btn { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 12px; padding: 10px 16px; min-height: 48px; font-weight: 700; cursor: pointer; }
+.btn.ghost { background: var(--surface); color: var(--accent); border: 1px solid var(--accent); }
+.msg { margin: 0; font-size: 14px; min-height: 18px; }
+.msg.ok { color: var(--ok); } .msg.err { color: var(--danger); }
+.vcard { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.vh { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.vh h3 { font-size: 20px; font-weight: 800; overflow-wrap: anywhere; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.sel { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ql { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+.pick { font-weight: 700; background: var(--bgc, var(--bg)); color: var(--fgc, var(--muted)); }
+.f1 { --bgc: var(--f1); --fgc: var(--f1i); } .f2 { --bgc: var(--f2); --fgc: var(--f2i); } .f3 { --bgc: var(--f3); --fgc: var(--f3i); }
+.s1 { --bgc: var(--s1); --fgc: var(--s1i); } .s2 { --bgc: var(--s2); --fgc: var(--s2i); } .s3 { --bgc: var(--s3); --fgc: var(--s3i); }
+.s4 { --bgc: var(--s4); --fgc: var(--s4i); } .s5 { --bgc: var(--s5); --fgc: var(--s5i); }
+.link { background: none; border: 0; color: var(--muted); text-decoration: underline; cursor: pointer; font-size: 14px; min-height: 40px; padding: 0 6px; align-self: flex-start; }
+.link.danger { color: var(--danger); }
+.add { display: flex; gap: 8px; }
+.add input { flex: 1; min-width: 0; }
+#addwrap { display: flex; flex-direction: column; gap: 8px; }
+.empty { background: var(--surface); border: 1px dashed var(--line); border-radius: 14px; padding: 20px 16px; display: flex; flex-direction: column; gap: 8px; }
+.empty h2 { font-size: 20px; } .empty p { margin: 0; color: var(--muted); }
+.scroll { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+table { border-collapse: collapse; width: 100%; }
+th, td { padding: 10px; border-bottom: 1px solid var(--line); text-align: left; }
+tr:last-child td { border-bottom: 0; }
+th { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 700; white-space: nowrap; }
+td.n { font-weight: 700; }
+.pill { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 13px; font-weight: 700; white-space: nowrap; background: var(--bgc); color: var(--fgc); }
+.dash { color: var(--muted); }
+.seg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.seg button { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; min-height: 46px; font-weight: 700; color: var(--muted); cursor: pointer; }
+.seg button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.hint { color: var(--muted); font-size: 14px; margin: 0; }
+footer { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; border-top: 1px solid var(--line); padding-top: 8px; }
+footer .msg { flex-basis: 100%; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Floración y cuajado</h1>
+    <div class="yearpick"><label for="year">Campaña</label><select id="year"></select></div>
+  </header>
+  <div id="banner" class="banner" hidden>Este navegador no deja guardar datos. Lo que anotes se perderá al cerrar la app.</div>
+  <nav class="tabs" role="tablist" aria-label="Secciones">
+    <button role="tab" data-act="tab" data-tab="campana" aria-selected="true">Esta campaña</button>
+    <button role="tab" data-act="tab" data-tab="comparar" aria-selected="false">Comparar años</button>
+  </nav>
+  <main id="content"></main>
+  <div id="addwrap">
+    <button class="btn ghost" type="button" id="showadd" data-act="showadd">+ Añadir variedad</button>
+    <div id="addrow" class="add" hidden>
+      <input type="text" id="newv" autocomplete="off" enterkeyhint="done" placeholder="Nombre de la variedad" aria-label="Nombre de la nueva variedad">
+      <button class="btn" type="button" data-act="addvar">Añadir</button>
+    </div>
+    <p class="msg err" id="adderr" role="status"></p>
+  </div>
+  <footer>
+    <button class="link" type="button" data-act="backup">Guardar copia de seguridad</button>
+    <button class="link" type="button" data-act="restore">Restaurar copia</button>
+    <input type="file" id="file" accept="application/json,.json" hidden>
+    <p class="msg" id="bmsg" role="status"></p>
+  </footer>
+</div>
+<script src="jspdf.umd.min.js"></script>
+<script>
+(function () {
+  var $ = function (s) { return document.querySelector(s); };
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
+  var FLO = [["temprana", "Temprana", "f1"], ["media", "Media", "f2"], ["tardia", "Tardía", "f3"]];
+  var CUA = [[1, "Bajo", "s1"], [2, "Medio bajo", "s2"], [3, "Medio", "s3"], [4, "Medio alto", "s4"], [5, "Alto", "s5"]];
+  var floInfo = function (v) { for (var i = 0; i < FLO.length; i++) if (FLO[i][0] === v) return FLO[i]; return null; };
+  var cuaInfo = function (v) { for (var i = 0; i < CUA.length; i++) if (CUA[i][0] === v) return CUA[i]; return null; };
+  var DEFAULTS = ["Lapins", "Sonata", "Sandon Rose", "Samba", "3-4-3", "4-84", "Ambrunés", "Santina", "Nimba"];
+  var KEY = "cuaderno-floracion:v1";
+
+  var cfg = { variedades: DEFAULTS.slice() }, records = [];
+  var now = new Date();
+  var year = now.getMonth() >= 8 ? now.getFullYear() + 1 : now.getFullYear();
+  var tab = "campana", metric = "floracion", confirmRm = null, openNotes = {}, addOpen = false, pdfMsg = { t: "", c: "" }, addErr = "";
+  var FIELDS = ["floracion", "cuajado", "nota"];
+  var recFor = function (name, y) { for (var i = 0; i < records.length; i++) if (records[i].anio === y && records[i].variedad === name) return records[i]; return null; };
+
+  /* ---------- guardado en el móvil ---------- */
+  function load() {
+    try {
+      var d = JSON.parse(localStorage.getItem(KEY));
+      if (d && Array.isArray(d.variedades)) { cfg.variedades = d.variedades; records = Array.isArray(d.registros) ? d.registros : []; }
+    } catch (e) { }
+  }
+  function persist() {
+    try { localStorage.setItem(KEY, JSON.stringify({ variedades: cfg.variedades, registros: records })); $("#banner").hidden = true; }
+    catch (e) { $("#banner").hidden = false; }
+  }
+  function saveRec(name, y, patch) {
+    var cur = recFor(name, y), o = { anio: y, variedad: name };
+    if (cur) FIELDS.forEach(function (k) { if (cur[k] != null && cur[k] !== "") o[k] = cur[k]; });
+    for (var k in patch) { if (patch[k] == null || patch[k] === "") delete o[k]; else o[k] = patch[k]; }
+    records = records.filter(function (r) { return !(r.anio === y && r.variedad === name); });
+    if (FIELDS.some(function (f) { return o[f] != null; })) records.push(o);
+    persist();
+  }
+
+  /* ---------- vistas ---------- */
+  function selHTML(label, kind, name, list, cur) {
+    var info = cur != null ? (kind === "floracion" ? floInfo(cur) : cuaInfo(cur)) : null;
+    return '<label class="sel"><span class="ql">' + label + '</span><select class="pick ' + (info ? info[2] : "") + '" data-k="' + kind + '" data-v="' + esc(name) + '" aria-label="' + label + ' de ' + esc(name) + '">' +
+      '<option value="">Sin marcar</option>' + list.map(function (o) { return '<option value="' + o[0] + '"' + (cur === o[0] ? " selected" : "") + '>' + o[1] + '</option>'; }).join("") + '</select></label>';
+  }
+  function cardHTML(name) {
+    var r = recFor(name, year) || {};
+    var h = '<article class="vcard"><div class="vh"><h3>' + esc(name) + '</h3>';
+    if (confirmRm === name) h += '<span><button class="link danger" data-act="rmyes" data-v="' + esc(name) + '">Quitar y borrar datos</button><button class="link" data-act="rmno">No</button></span>';
+    else h += '<button class="link" data-act="rm" data-v="' + esc(name) + '">Quitar</button>';
+    h += '</div><div class="two">' + selHTML("Floración", "floracion", name, FLO, r.floracion) + selHTML("Cuajado", "cuajado", name, CUA, r.cuajado) + '</div>';
+    if (r.nota || openNotes[name]) h += '<textarea rows="2" placeholder="Nota (opcional)" aria-label="Nota de ' + esc(name) + '" data-note="1" data-v="' + esc(name) + '">' + esc(r.nota || "") + '</textarea>';
+    else h += '<button class="link" data-act="note" data-v="' + esc(name) + '">+ Añadir nota</button>';
+    return h + '</article>';
+  }
+  function renderCampana() {
+    var v = cfg.variedades;
+    if (!v.length) { $("#content").innerHTML = '<div class="empty"><h2>Aún no hay variedades</h2><p>Añade la primera con el botón de abajo.</p></div>'; return; }
+    $("#content").innerHTML = '<div class="stack"><div class="bar"><button class="btn ghost" data-act="pdf">Descargar PDF de ' + year + '</button></div>' +
+      (pdfMsg.t ? '<p class="msg ' + pdfMsg.c + '" role="status">' + esc(pdfMsg.t) + '</p>' : "") + v.map(cardHTML).join("") + '</div>';
+  }
+  function renderComparar() {
+    var ys = {}; records.forEach(function (r) { ys[r.anio] = 1; });
+    var years = Object.keys(ys).map(Number).sort(function (a, b) { return a - b; }).slice(-6);
+    var h = '<div class="stack"><div class="seg"><button data-act="metric" data-m="floracion" aria-pressed="' + (metric === "floracion") + '">Floración</button><button data-act="metric" data-m="cuajado" aria-pressed="' + (metric === "cuajado") + '">Cuajado</button></div>';
+    if (!years.length || !cfg.variedades.length) return h + '<p class="hint">Cuando tengas datos de dos campañas, aquí verás cómo cambia cada variedad de un año a otro.</p></div>';
+    h += '<div class="scroll"><table><thead><tr><th>Variedad</th>' + years.map(function (y) { return '<th>' + y + '</th>'; }).join("") + '</tr></thead><tbody>';
+    cfg.variedades.forEach(function (name) {
+      h += '<tr><td class="n">' + esc(name) + '</td>' + years.map(function (y) {
+        var r = recFor(name, y), info = r ? (metric === "floracion" ? floInfo(r.floracion) : cuaInfo(r.cuajado)) : null;
+        return '<td>' + (info ? '<span class="pill ' + info[2] + '">' + info[1] + '</span>' : '<span class="dash">-</span>') + '</td>';
+      }).join("") + '</tr>';
+    });
+    return h + '</tbody></table></div></div>';
+  }
+  function renderYears() {
+    var ys = {}; for (var y = 2025; y <= now.getFullYear() + 2; y++) ys[y] = 1; ys[year] = 1; records.forEach(function (r) { ys[r.anio] = 1; });
+    var arr = Object.keys(ys).map(Number).sort(function (a, b) { return b - a; });
+    $("#year").innerHTML = arr.map(function (y) { return '<option value="' + y + '">' + y + '</option>'; }).join(""); $("#year").value = String(year);
+  }
+  function render() {
+    var a = document.activeElement;
+    if (a && (a.tagName === "TEXTAREA" || a.tagName === "SELECT") && $("#content").contains(a)) return;
+    renderYears();
+    if (tab === "campana") renderCampana(); else $("#content").innerHTML = renderComparar();
+    var open = tab === "campana" && (addOpen || !cfg.variedades.length);
+    $("#addwrap").hidden = tab !== "campana";
+    $("#addrow").hidden = !open; $("#showadd").hidden = open;
+    $("#adderr").textContent = addErr;
+  }
+
+  /* ---------- archivos: PDF y copia de seguridad ---------- */
+  function saveFile(blob, filename, type) {
+    var ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    var file = null; try { file = new File([blob], filename, { type: type }); } catch (e) { }
+    if (ios && file && navigator.canShare && navigator.canShare({ files: [file] })) return navigator.share({ files: [file], title: filename });
+    var url = URL.createObjectURL(blob), a = document.createElement("a");
+    a.href = url; a.download = filename; document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 2000);
+    return Promise.resolve();
+  }
+  function buildPdf() {
+    var J = window.jspdf && window.jspdf.jsPDF; if (!J) return null;
+    var doc = new J({ unit: "mm", format: "a4" }), L = 18, W = 210 - 2 * L, X = { v: L, f: L + 42, c: L + 66, n: L + 118 }, y = 20;
+    doc.setFont("helvetica", "bold"); doc.setFontSize(20); doc.text("Floración y cuajado", L, y);
+    doc.setFontSize(13); y += 8; doc.text("Campaña " + year, L, y);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(110);
+    y += 6; doc.text("Generado el " + now.toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" }), L, y);
+    doc.setTextColor(0); y += 10;
+    var head = function () {
+      doc.setFont("helvetica", "bold"); doc.setFontSize(8); doc.setTextColor(110);
+      doc.text("VARIEDAD", X.v, y); doc.text("FLORACIÓN", X.f, y); doc.text("CUAJADO", X.c, y); doc.text("NOTAS", X.n, y);
+      doc.setDrawColor(200); doc.line(L, y + 2, L + W, y + 2); doc.setTextColor(0); y += 8;
+    };
+    head();
+    cfg.variedades.forEach(function (name) {
+      var r = recFor(name, year) || {};
+      doc.setFont("helvetica", "normal"); doc.setFontSize(9);
+      var lines = r.nota ? doc.splitTextToSize(r.nota, 192 - X.n) : [];
+      var nameLines = doc.splitTextToSize(name, 38);
+      var rh = Math.max(11, lines.length * 4 + 5, nameLines.length * 4.5 + 4);
+      if (y + rh > 282) { doc.addPage(); y = 20; head(); }
+      doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.text(nameLines, X.v, y);
+      doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+      var fi = floInfo(r.floracion); doc.text(fi ? fi[1] : "-", X.f, y);
+      var ci = cuaInfo(r.cuajado);
+      if (ci) {
+        for (var i = 1; i <= 5; i++) { if (i <= ci[0]) doc.setFillColor(47, 122, 77); else doc.setFillColor(221, 221, 221); doc.rect(X.c + (i - 1) * 4.6, y - 3.2, 3.8, 3.8, "F"); }
+        doc.text(ci[1], X.c, y + 4.2);
+      } else doc.text("-", X.c, y);
+      doc.setFontSize(9); if (lines.length) doc.text(lines, X.n, y);
+      y += rh; doc.setDrawColor(230); doc.line(L, y - 4, L + W, y - 4);
+    });
+    return doc.output("blob");
+  }
+  function downloadPdf() {
+    var blob = null; try { blob = buildPdf(); } catch (e) { blob = null; }
+    if (!blob) { pdfMsg = { t: "No se pudo crear el PDF.", c: "err" }; render(); return; }
+    saveFile(blob, "floracion-cuajado-" + year + ".pdf", "application/pdf").then(function () { pdfMsg = { t: "PDF listo.", c: "ok" }; render(); },
+      function (e) { pdfMsg = { t: e && e.name === "AbortError" ? "Cancelado." : "No se pudo guardar el PDF.", c: e && e.name === "AbortError" ? "" : "err" }; render(); });
+  }
+  function bmsg(t, c) { var m = $("#bmsg"); m.textContent = t; m.className = "msg" + (c ? " " + c : ""); }
+  function backup() {
+    var data = JSON.stringify({ app: "floracion-cuajado", version: 1, variedades: cfg.variedades, registros: records }, null, 1);
+    saveFile(new Blob([data], { type: "application/json" }), "floracion-cuajado-copia.json", "application/json").then(function () { bmsg("Copia guardada.", "ok"); },
+      function (e) { bmsg(e && e.name === "AbortError" ? "Cancelado." : "No se pudo guardar la copia.", e && e.name === "AbortError" ? "" : "err"); });
+  }
+  function restore(file) {
+    var rd = new FileReader();
+    rd.onload = function () {
+      try {
+        var d = JSON.parse(rd.result);
+        if (!d || d.app !== "floracion-cuajado" || !Array.isArray(d.variedades) || !Array.isArray(d.registros)) throw new Error("formato");
+        d.variedades.forEach(function (v) { if (typeof v === "string" && !cfg.variedades.some(function (x) { return x.toLowerCase() === v.toLowerCase(); })) cfg.variedades.push(v); });
+        d.registros.forEach(function (r) {
+          if (!r || typeof r.variedad !== "string" || typeof r.anio !== "number") return;
+          records = records.filter(function (x) { return !(x.anio === r.anio && x.variedad === r.variedad); });
+          var o = { anio: r.anio, variedad: r.variedad }; FIELDS.forEach(function (k) { if (r[k] != null && r[k] !== "") o[k] = r[k]; }); records.push(o);
+        });
+        persist(); render(); bmsg("Copia restaurada.", "ok");
+      } catch (e) { bmsg("Ese archivo no es una copia de esta app.", "err"); }
+    };
+    rd.readAsText(file);
+  }
+
+  /* ---------- variedades ---------- */
+  function addVariety() {
+    var inp = $("#newv"), v = inp.value.trim().replace(/\s+/g, " ");
+    if (!v) { addErr = "Escribe el nombre de la variedad."; render(); return; }
+    if (cfg.variedades.some(function (x) { return x.toLowerCase() === v.toLowerCase(); })) { addErr = "Esa variedad ya está en la lista."; render(); return; }
+    addErr = ""; cfg.variedades.push(v); inp.value = ""; addOpen = false; persist(); render();
+  }
+
+  /* ---------- eventos ---------- */
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest("[data-act]"); if (!b) return;
+    var a = b.dataset.act, v = b.dataset.v;
+    if (a === "tab") { tab = b.dataset.tab; document.querySelectorAll('[role="tab"]').forEach(function (t) { t.setAttribute("aria-selected", t.dataset.tab === tab ? "true" : "false"); }); render(); }
+    else if (a === "note") { openNotes[v] = true; render(); var ts = document.querySelectorAll("textarea[data-note]"); for (var i = 0; i < ts.length; i++) if (ts[i].dataset.v === v) ts[i].focus(); }
+    else if (a === "rm") { confirmRm = v; render(); }
+    else if (a === "rmno") { confirmRm = null; render(); }
+    else if (a === "rmyes") {
+      records = records.filter(function (r) { return r.variedad !== v; });
+      cfg.variedades = cfg.variedades.filter(function (x) { return x !== v; }); confirmRm = null; persist(); render();
+    }
+    else if (a === "metric") { metric = b.dataset.m; render(); }
+    else if (a === "pdf") downloadPdf();
+    else if (a === "showadd") { addOpen = true; addErr = ""; render(); $("#newv").focus(); }
+    else if (a === "addvar") addVariety();
+    else if (a === "backup") backup();
+    else if (a === "restore") $("#file").click();
+  });
+  $("#file").addEventListener("change", function (e) { var f = e.target.files && e.target.files[0]; if (f) restore(f); e.target.value = ""; });
+  document.addEventListener("keydown", function (e) { if (e.key === "Enter" && e.target.id === "newv") { e.preventDefault(); addVariety(); } });
+  document.addEventListener("change", function (e) {
+    var t = e.target; if (!t.matches) return;
+    if (t.matches("select.pick")) {
+      var k = t.dataset.k, val = t.value === "" ? null : (k === "cuajado" ? +t.value : t.value), patch = {}; patch[k] = val;
+      var info = val == null ? null : (k === "floracion" ? floInfo(val) : cuaInfo(val));
+      t.className = "pick" + (info ? " " + info[2] : "");
+      saveRec(t.dataset.v, year, patch);
+    } else if (t.matches("textarea[data-note]")) saveRec(t.dataset.v, year, { nota: t.value.trim() });
+  });
+  document.addEventListener("focusout", function (e) { if (e.target.matches && e.target.matches("select.pick, textarea[data-note]")) setTimeout(render, 0); });
+  $("#year").addEventListener("change", function (e) { year = +e.target.value; pdfMsg = { t: "", c: "" }; if (document.activeElement) document.activeElement.blur(); render(); });
+
+  /* ---------- arranque ---------- */
+  load(); render();
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) { }
+  if ("serviceWorker" in navigator && location.protocol.indexOf("http") === 0) { window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () { }); }); }
+})();
+</script>
+</body>
+</html>

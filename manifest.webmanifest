@@ -1,0 +1,16 @@
+{
+  "name": "Floración y cuajado",
+  "short_name": "Cerezos",
+  "description": "Registro por campaña de la floración y el cuajado de cada variedad de cerezo.",
+  "lang": "es",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f3f4",
+  "theme_color": "#a3173f",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
