@@ -18,7 +18,7 @@
 :root {
   --bg: #f5f3f4; --surface: #ffffff; --ink: #261c20; --muted: #6c5e64; --line: #e2dade;
   --accent: #a3173f; --accent-ink: #ffffff; --danger: #a8281c; --ok: #246a42;
-  --f1: #f7d9e1; --f1i: #261c20; --f2: #e9a3b8; --f2i: #261c20; --f3: #b73a5e; --f3i: #ffffff;
+  --f0: #fbe9ee; --f0i: #261c20; --f1: #f3cbd6; --f1i: #261c20; --f2: #e39ab0; --f2i: #261c20; --f3: #c4506f; --f3i: #ffffff; --f4: #8f1d41; --f4i: #ffffff;
   --s1: #dcebe0; --s1i: #261c20; --s2: #b3d7bf; --s2i: #261c20; --s3: #7fbb94; --s3i: #1b2a20;
   --s4: #468f61; --s4i: #ffffff; --s5: #246a42; --s5i: #ffffff;
   --font-display: ui-rounded, "Avenir Next", "Trebuchet MS", system-ui, sans-serif;
@@ -29,7 +29,7 @@
   :root {
     --bg: #151113; --surface: #1f191c; --ink: #f1e8eb; --muted: #ab9ba2; --line: #352b2f;
     --accent: #e4607f; --accent-ink: #1a0f13; --danger: #f08a7e; --ok: #8fd1a6;
-    --f1: #4a2833; --f1i: #f1e8eb; --f2: #7d3a52; --f2i: #f1e8eb; --f3: #d9708f; --f3i: #1a0f13;
+    --f0: #3a2029; --f0i: #f1e8eb; --f1: #54303c; --f1i: #f1e8eb; --f2: #7d3a52; --f2i: #f1e8eb; --f3: #c8607f; --f3i: #1a0f13; --f4: #eb90aa; --f4i: #1a0f13;
     --s1: #26382d; --s1i: #f1e8eb; --s2: #31553f; --s2i: #f1e8eb; --s3: #3f7a55; --s3i: #f1e8eb;
     --s4: #62a77a; --s4i: #10190f; --s5: #8fd1a6; --s5i: #10190f; color-scheme: dark;
   }
@@ -72,7 +72,7 @@ button { font: inherit; color: inherit; touch-action: manipulation; }
 .sel { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .ql { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
 .pick { font-weight: 700; background: var(--bgc, var(--bg)); color: var(--fgc, var(--muted)); }
-.f1 { --bgc: var(--f1); --fgc: var(--f1i); } .f2 { --bgc: var(--f2); --fgc: var(--f2i); } .f3 { --bgc: var(--f3); --fgc: var(--f3i); }
+.f0 { --bgc: var(--f0); --fgc: var(--f0i); } .f1 { --bgc: var(--f1); --fgc: var(--f1i); } .f2 { --bgc: var(--f2); --fgc: var(--f2i); } .f3 { --bgc: var(--f3); --fgc: var(--f3i); } .f4 { --bgc: var(--f4); --fgc: var(--f4i); }
 .s1 { --bgc: var(--s1); --fgc: var(--s1i); } .s2 { --bgc: var(--s2); --fgc: var(--s2i); } .s3 { --bgc: var(--s3); --fgc: var(--s3i); }
 .s4 { --bgc: var(--s4); --fgc: var(--s4i); } .s5 { --bgc: var(--s5); --fgc: var(--s5i); }
 .link { background: none; border: 0; color: var(--muted); text-decoration: underline; cursor: pointer; font-size: 14px; min-height: 40px; padding: 0 6px; align-self: flex-start; }
@@ -131,7 +131,7 @@ footer .msg { flex-basis: 100%; }
 (function () {
   var $ = function (s) { return document.querySelector(s); };
   var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
-  var FLO = [["temprana", "Temprana", "f1"], ["media", "Media", "f2"], ["tardia", "Tardía", "f3"]];
+  var FLO = [["extratemprana", "Extratemprana", "f0"], ["temprana", "Temprana", "f1"], ["media", "Media", "f2"], ["tardia", "Tardía", "f3"], ["extratardia", "Extratardía", "f4"]];
   var CUA = [[1, "Bajo", "s1"], [2, "Medio bajo", "s2"], [3, "Medio", "s3"], [4, "Medio alto", "s4"], [5, "Alto", "s5"]];
   var floInfo = function (v) { for (var i = 0; i < FLO.length; i++) if (FLO[i][0] === v) return FLO[i]; return null; };
   var cuaInfo = function (v) { for (var i = 0; i < CUA.length; i++) if (CUA[i][0] === v) return CUA[i]; return null; };
