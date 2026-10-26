@@ -1,5 +1,5 @@
 /* Service worker: guarda la app en el móvil para que abra sin conexión. */
-var CACHE = "floracion-cuajado-v1";
+var CACHE = "floracion-cuajado-v2";
 var FILES = ["./", "./index.html", "./manifest.webmanifest", "./jspdf.umd.min.js", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", function (e) {
